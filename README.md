@@ -56,9 +56,9 @@ API documentation can be accessed at `/api/docs` when running the server.
 
 ## Related Repositories
 
-- [fleet-tracker-school](../fleet-tracker-school) - Main project documentation
-- [fleet-tracker-school-frontend](../fleet-tracker-school-frontend) - Frontend applications
-- [fleet-tracker-school-shared](../fleet-tracker-school-shared) - Shared utilities
+- [fleet-tracker-school](https://github.com/smodu-organisation/fleet-tracker-school) - Main project documentation
+- [fleet-tracker-school-frontend](https://github.com/smodu-organisation/fleet-tracker-school-frontend) - Frontend applications
+- [fleet-tracker-school-shared](https://github.com/smodu-organisation/fleet-tracker-school-shared) - Shared utilities
 
 ## License
 
