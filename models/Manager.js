@@ -1,12 +1,13 @@
+const mongoose = require('mongoose');
+
 const managerSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  email: { type: String, unique: true, required: true },
-  username: { type: String, unique: true, required: true },
-  phone: String,
+  email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  school_name: String,
-  payment_status: String,
-  package_name: String
+  managedDrivers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Driver' }],
+  managedRoutes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Route' }]
 });
 
-module.exports = mongoose.model('Manager', managerSchema);
+const Manager = mongoose.model('Manager', managerSchema);
+
+module.exports = Manager;
