@@ -14,6 +14,7 @@ const studentSchema = new mongoose.Schema({
   house_longitude: { type: Number, required: true },
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now }
+  
 });
 
 module.exports = mongoose.model('Student', studentSchema);
