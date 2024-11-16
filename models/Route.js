@@ -1,11 +1,17 @@
 const mongoose = require('mongoose');
 
 const routeSchema = new mongoose.Schema({
-    routeName: { type: String, required: true },
-    stops: [{ location: String, time: String }],
-    vehicle: { type: mongoose.Schema.Types.ObjectId, ref: 'Vehicle', required: true },
-    driver: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  school_id: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
+  route_name: { type: String, required: true },
+  start_location: { type: String, required: true },  // House 
+  end_location: { type: String, required: true },    // School 
+  driver_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  vehicle_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Vehicle', required: true },
+  assigned_students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Student' }],
+  route_distance: { type: Number, required: true },  // Distance in km
+  estimated_time: { type: Number, required: true },   // Time in hours
+  created_at: { type: Date, default: Date.now },
+  updated_at: { type: Date, default: Date.now }
 });
 
-const Route = mongoose.model('Route', routeSchema);
-module.exports = Route;
+module.exports = mongoose.model('Route', routeSchema);
