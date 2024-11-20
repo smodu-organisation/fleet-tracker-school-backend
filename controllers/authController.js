@@ -147,6 +147,66 @@ exports.managerSignin = async (req, res) => {
   }
 };
 
+exports.driverSignin = async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required.' });
+  }
+
+  try {
+    const user = await User.findOne({ email, role: 'Driver' });
+    if (!user) {
+      return res.status(404).json({ message: 'Driver not found.' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials.' });
+    }
+
+    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.SECRET, { expiresIn: '1h' });
+
+    res.status(200).json({
+      message: 'Sign-in successful',
+      token,  
+      user: { email: user.email, name: user.name, role: user.role },
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};
+
+exports.parentSignin = async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required.' });
+  }
+
+  try {
+    const user = await User.findOne({ email, role: 'Parent' });
+    if (!user) {
+      return res.status(404).json({ message: 'Parent not found.' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials.' });
+    }
+
+    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.SECRET, { expiresIn: '1h' });
+
+    res.status(200).json({
+      message: 'Sign-in successful',
+      token, 
+      user: { email: user.email, name: user.name, role: user.role },
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};
+
 exports.requestPasswordReset = async (req, res) => {
   const { email } = req.body;
 
