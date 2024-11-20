@@ -7,14 +7,14 @@ const studentSchema = new mongoose.Schema({
   age: { type: Number, required: true },
   grade: { type: String, required: true },
   note: { type: String },
-  assigned_route_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Route', required: true },
+  assigned_route_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Route' },
   pickup_time: { type: Date },
   dropoff_time: { type: Date },
-  house_latitude: { type: Number, required: true },
-  house_longitude: { type: Number, required: true },
+  house_latitude: { type: mongoose.Schema.Types.Decimal128 },
+  house_longitude: { type: mongoose.Schema.Types.Decimal128 },
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now }
-  
 });
 
 module.exports = mongoose.model('Student', studentSchema);
+

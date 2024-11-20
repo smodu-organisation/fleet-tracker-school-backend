@@ -6,10 +6,11 @@ const vehicleSchema = new mongoose.Schema({
   type: { type: String, required: true },
   status: { type: String, enum: ['Active', 'In Maintenance'], required: true },
   fuel_status: { type: String, required: true },
-  current_location: { type: String, required: true },
-  last_maintenance_date: { type: Date, required: true },
+  current_location: { type: String },
+  last_maintenance_date: { type: Date },
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model('Vehicle', vehicleSchema);
+
