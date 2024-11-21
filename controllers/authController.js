@@ -2,9 +2,11 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const School = require('../models/School');
+const Session = require('../models/Session');
 const sendEmail = require('../utils/sendEmail');
 const crypto = require('crypto');
 const { sendConfirmationEmail, sendPasswordResetEmail } = require('../utils/sendEmail');
+const { v4: uuidv4 } = require('uuid');
 
 exports.managerSignup = async (req, res) => {
   const { name, email, password, school_name, subscription_plan } = req.body;
@@ -110,10 +112,10 @@ exports.confirmEmail = async (req, res) => {
 };
 
 exports.managerSignin = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, deviceId } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Please provide both email and password.' });
+  if (!email || !password || !deviceId) {
+    return res.status(400).json({ message: 'Please provide email, password, and device ID.' });
   }
 
   try {
@@ -130,6 +132,17 @@ exports.managerSignin = async (req, res) => {
     if (manager.role !== 'Manager') {
       return res.status(403).json({ message: 'Access denied. Not a manager.' });
     }
+
+    const existingSession = await Session.findOne({ userId: manager._id });
+    if (existingSession && existingSession.deviceId !== deviceId) {
+      return res.status(403).json({ error: 'Session already active on another device.' });
+    }
+
+    await Session.findOneAndUpdate(
+      { userId: manager._id },
+      { userId: manager._id, deviceId },
+      { upsert: true }
+    );
 
     const token = jwt.sign(
       { userId: manager._id, role: manager.role },
@@ -148,10 +161,10 @@ exports.managerSignin = async (req, res) => {
 };
 
 exports.driverSignin = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, deviceId } = req.body;  // Including deviceId
 
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Email and password are required.' });
+  if (!email || !password || !deviceId) {
+    return res.status(400).json({ message: 'Email, password, and device ID are required.' });
   }
 
   try {
@@ -165,7 +178,24 @@ exports.driverSignin = async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials.' });
     }
 
-    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.SECRET, { expiresIn: '1h' });
+    // Check if a session exists for the user
+    const existingSession = await Session.findOne({ userId: user._id });
+    if (existingSession && existingSession.deviceId !== deviceId) {
+      return res.status(403).json({ error: 'Session already active on another device.' });
+    }
+
+    // Create or update the session
+    await Session.findOneAndUpdate(
+      { userId: user._id },
+      { userId: user._id, deviceId },
+      { upsert: true } // Will create the session if it doesn't exist
+    );
+
+    const token = jwt.sign(
+      { userId: user._id, role: user.role },
+      process.env.SECRET,
+      { expiresIn: '1h' }
+    );
 
     res.status(200).json({
       message: 'Sign-in successful',
@@ -178,10 +208,10 @@ exports.driverSignin = async (req, res) => {
 };
 
 exports.parentSignin = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, deviceId } = req.body;  
 
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Email and password are required.' });
+  if (!email || !password || !deviceId) {
+    return res.status(400).json({ message: 'Email, password, and device ID are required.' });
   }
 
   try {
@@ -195,7 +225,22 @@ exports.parentSignin = async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials.' });
     }
 
-    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.SECRET, { expiresIn: '1h' });
+    const existingSession = await Session.findOne({ userId: user._id });
+    if (existingSession && existingSession.deviceId !== deviceId) {
+      return res.status(403).json({ error: 'Session already active on another device.' });
+    }
+
+    await Session.findOneAndUpdate(
+      { userId: user._id },
+      { userId: user._id, deviceId },
+      { upsert: true }
+    );
+
+    const token = jwt.sign(
+      { userId: user._id, role: user.role },
+      process.env.SECRET,
+      { expiresIn: '1h' }
+    );
 
     res.status(200).json({
       message: 'Sign-in successful',
@@ -252,5 +297,19 @@ exports.resetPassword = async (req, res) => {
   } catch (error) {
     console.error('Error resetting password:', error);
     res.status(500).json({ message: 'Error resetting password', error: error.message });
+  }
+};
+
+exports.signout = async (req, res) => {
+  try {
+    const token = req.headers['authorization'].split(' ')[1]; 
+    const decoded = jwt.verify(token, process.env.SECRET);
+
+    await Session.deleteOne({ userId: decoded.userId });
+
+    return res.status(200).json({ message: 'Logout successful.' });
+  } catch (error) {
+    console.error('Error during logout:', error);
+    return res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
