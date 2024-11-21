@@ -75,7 +75,6 @@ exports.changePassword = async (req, res) => {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password_hash = hashedPassword;
 
-    // Save the updated password
     await user.save();
 
     res.status(200).json({ message: 'Password updated successfully.' });
