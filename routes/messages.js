@@ -2,17 +2,16 @@ const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const dotenv = require('dotenv');
-const sessionConfig = require('./config/sessions'); 
+const sessionConfig = require('./config/sessions');
 const User = require('./models/User');
-const http = require('http'); 
-const socketIo = require('socket.io'); 
+const messageRoutes = require('./routes/messages'); 
+const http = require('http');
+const socketIo = require('socket.io');
 
 dotenv.config();
 
 const app = express();
-
 const server = http.createServer(app);
-
 const io = socketIo(server);
 
 app.use(session(sessionConfig));
@@ -24,28 +23,25 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
 
 io.on('connection', (socket) => {
   console.log('A user connected.');
-
   socket.on('send_message', (messageData) => {
     io.emit('receive_message', messageData);
   });
-
   socket.on('disconnect', () => {
     console.log('A user disconnected.');
   });
 });
 
-const messageRoutes = require('./routes/messages');
+// Use the message routes
 app.use('/api/messages', messageRoutes);
 
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
-
   const user = await User.findOne({ email });
   if (!user) {
     return res.status(401).json({ message: 'Invalid credentials' });
   }
 
-  const isMatch = await user.matchPassword(password); 
+  const isMatch = await user.matchPassword(password);
   if (!isMatch) {
     return res.status(401).json({ message: 'Invalid credentials' });
   }
