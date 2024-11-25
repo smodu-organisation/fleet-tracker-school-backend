@@ -3,7 +3,6 @@ const { sendMessage, getChatHistory , updateMessageStatus } = require('../contro
 const router = express.Router();
 
 router.post('/send', sendMessage);
-
 router.get('/:userId/:receiverId', getChatHistory);
 router.put('/status/:messageId', updateMessageStatus);
 module.exports = router;
