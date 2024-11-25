@@ -1,16 +1,23 @@
 const Message = require('../models/Message');
-
-
+const User = require('../models/User'); 
 
 exports.sendMessage = async (req, res) => {
     const { sender_id, receiver_id, message, image_url } = req.body;
 
     try {
- 
+        const sender = await User.findById(sender_id);
+        const receiver = await User.findById(receiver_id);
+
+        if (!sender) {
+            return res.status(404).json({ success: false, message: "Sender not found" });
+        }
+        if (!receiver) {
+            return res.status(404).json({ success: false, message: "Receiver not found" });
+        }
 
         const newMessage = await Message.create({
-            sender_id: sender_id,
-            receiver_id: receiver_id,
+            sender_id,
+            receiver_id,
             message,
             image_url,
         });
@@ -25,6 +32,16 @@ exports.getChatHistory = async (req, res) => {
     const { userId, receiverId } = req.params;
 
     try {
+        const sender = await User.findById(userId);
+        const receiver = await User.findById(receiverId);
+
+        if (!sender) {
+            return res.status(404).json({ success: false, message: "Sender not found" });
+        }
+        if (!receiver) {
+            return res.status(404).json({ success: false, message: "Receiver not found" });
+        }
+
         const messages = await Message.find({
             $or: [
                 { sender_id: userId, receiver_id: receiverId },
@@ -38,16 +55,15 @@ exports.getChatHistory = async (req, res) => {
     }
 };
 
-
 exports.updateMessageStatus = async (req, res) => {
     try {
-        const { messageId } = req.params;  
-        const { status } = req.body;  
+        const { messageId } = req.params;
+        const { status } = req.body;
 
         const message = await Message.findByIdAndUpdate(
             messageId,
             { status },
-            { new: true }  
+            { new: true } 
         );
 
         if (!message) {
