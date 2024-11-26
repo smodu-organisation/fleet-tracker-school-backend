@@ -34,10 +34,6 @@ fleet-tracker-school-backend/
 │   ├── parents.js         # Parent-specific routes
 │   ├── drivers.js         # Driver-specific routes
 │   └── managers.js        # Manager-specific routes
-├── services/              # Services for database interactions and business logic
-│   ├── parentService.js
-│   ├── driverService.js
-│   └── managerService.js
 ├── utils/                 # Utility functions
 │   └── helpers.js         # Common helper functions
 ├── .env.example           # Example environment variables file
