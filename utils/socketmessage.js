@@ -1,4 +1,4 @@
-const Message = require('./../models/Message'); 
+const Message = require('../models/Message'); 
 
 const socketHandler = (server) => {
   const io = require('socket.io')(server, {
