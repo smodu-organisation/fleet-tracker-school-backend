@@ -4,7 +4,7 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 const messageRoutes = require("./routes/message");
-const socket = require("./utils/socketmessage");
+const socket = require("./utils/socketUtils");
 const app = express();
 
 connectDB();

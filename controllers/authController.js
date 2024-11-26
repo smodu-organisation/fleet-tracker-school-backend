@@ -3,10 +3,8 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const School = require('../models/School');
 const Session = require('../models/Session');
-const sendEmail = require('../utils/sendEmail');
 const crypto = require('crypto');
 const { sendConfirmationEmail, sendPasswordResetEmail } = require('../utils/sendEmail');
-const { v4: uuidv4 } = require('uuid');
 
 exports.managerSignup = async (req, res) => {
   const { name, email, password, school_name, subscription_plan } = req.body;
