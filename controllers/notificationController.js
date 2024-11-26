@@ -1,5 +1,5 @@
 const Notification = require('../models/Notification');
-const User = require('../models/User')
+const User = require('../models/User');
 const { sendNotificationToSocket } = require('../utils/socketUtils');
 const cron = require('node-cron');
 
@@ -23,9 +23,9 @@ exports.sendNotification = async (req, res) => {
       message,
       notificationType,
       actionDetails,
-      isRead: false, 
+      isRead: false,
       scheduledTime: null,
-      status: 'Sent' 
+      status: 'Sent',
     });
 
     await notification.save();
@@ -55,9 +55,19 @@ exports.scheduleNotification = async (req, res) => {
       return res.status(404).json({ error: 'One or more receivers not found' });
     }
 
-    const now = new Date();
-    if (new Date(scheduledTime) <= now) {
-      return res.status(400).json({ error: 'Scheduled time must be in the future' });
+    const now = new Date(); // Get the current date and time
+    let scheduleTime = new Date(scheduledTime); // Convert the scheduled time from the request
+
+    // Check if the scheduled time is in the past (less than or equal to now)
+    if (scheduleTime <= now) {
+      // If it's in the past, set it to 1 minute ahead of the current time
+      scheduleTime = new Date(now.getTime() + 1 * 60 * 1000); // Add 1 minute to the current time
+    }
+
+    // Ensure the scheduled time is at least 1 minute in the future
+    if (scheduledTime === scheduleTime.toISOString()) {
+      // If the user provided the current time (or time in the past), set it to future time
+      scheduleTime = new Date(now.getTime() + 1 * 60 * 1000); // Set it to 1 minute ahead
     }
 
     const notification = new Notification({
@@ -66,21 +76,12 @@ exports.scheduleNotification = async (req, res) => {
       message,
       notificationType,
       actionDetails,
-      scheduledTime,
-      isRead: false, 
-      status: 'Pending' 
+      scheduledTime: scheduleTime,
+      isRead: false,
+      status: 'Pending',
     });
 
     await notification.save();
-
-    cron.schedule(new Date(scheduledTime), () => {
-      receivers.forEach((receiverId) => {
-        sendNotificationToSocket(receiverId, notification);
-      });
-
-      notification.status = 'Sent';
-      notification.save();
-    });
 
     res.status(200).json({ success: true, notification });
   } catch (error) {
@@ -89,13 +90,14 @@ exports.scheduleNotification = async (req, res) => {
   }
 };
 
+
 exports.getNotifications = async (req, res) => {
   try {
     const { userId } = req.params;
 
     const notifications = await Notification.find({
-      receivers: userId
-    }).sort({ createdAt: -1 }); 
+      receivers: userId,
+    }).sort({ createdAt: -1 });
 
     res.status(200).json({ success: true, notifications });
   } catch (error) {
@@ -128,6 +130,7 @@ exports.markAsRead = async (req, res) => {
     res.status(500).json({ error: 'Failed to update read status' });
   }
 };
+
 exports.getNotificationsSentByUser = async (req, res) => {
   try {
     const { senderId } = req.params;
@@ -145,25 +148,23 @@ exports.getNotificationsSentByUser = async (req, res) => {
   }
 };
 
-
 const handleScheduledNotifications = () => {
   cron.schedule('* * * * *', async () => {
     try {
       const now = new Date();
       const notificationsToSend = await Notification.find({
         scheduledTime: { $lte: now },
-        isRead: false,
-        status: 'Pending' 
+        status: 'Pending',
       });
 
-      notificationsToSend.forEach((notification) => {
+      for (const notification of notificationsToSend) {
         notification.receivers.forEach((receiverId) => {
           sendNotificationToSocket(receiverId, notification);
         });
 
         notification.status = 'Sent';
-        notification.save();
-      });
+        await notification.save();
+      }
     } catch (error) {
       console.error('Error processing scheduled notifications:', error);
     }

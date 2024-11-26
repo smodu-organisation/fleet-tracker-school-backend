@@ -6,6 +6,8 @@ const userRoutes = require('./routes/user');
 const notificationRoutes = require('./routes/notification');
 const http = require('http');
 const socketIo = require('socket.io');
+const { setSocketIO } = require('./utils/socketUtils');  // Import the socketUtils file
+
 
 const app = express();
 
@@ -19,6 +21,7 @@ app.use('/api/notifications/', notificationRoutes);
 
 const server = http.createServer(app);
 const io = socketIo(server);
+setSocketIO(server);
 
 io.on('connection', (socket) => {
   console.log('User connected: ', socket.id);
