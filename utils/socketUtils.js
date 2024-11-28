@@ -1,13 +1,40 @@
-const Message = require('../models/Message'); 
+const socketIO = require('socket.io');
 
-const socketHandler = (server) => {
-  const io = require('socket.io')(server, {
+let socketIOInstance;
+
+const setSocketIO = (server) => {
+  socketIOInstance = socketIO(server, {
     cors: {
-      origin: '*', 
+      origin: '*',
     },
   });
+  return socketIOInstance;
+};
 
-  io.on('connection', (socket) => {
+
+const sendNotificationToSocket = (userId, notification) => {
+  if (!socketIOInstance) {
+    return;
+  }
+
+  socketIOInstance.to(userId).emit('new-notification', notification);
+};
+
+const sendGlobalNotification = (message) => {
+  if (!socketIOInstance) {
+    return;
+  }
+
+  socketIOInstance.emit('global-alert', message);
+};
+
+const socketHandler = () => {
+  if (!socketIOInstance) {
+    console.error('Socket.io instance is not initialized');
+    return;
+  }
+
+  socketIOInstance.on('connection', (socket) => {
     console.log(`Client connected: ${socket.id}`);
 
     socket.on('joinRoom', ({ userId }) => {
@@ -17,7 +44,6 @@ const socketHandler = (server) => {
 
     socket.on('sendMessage', async (data) => {
       const { sender_id, receiver_id, message, image_url } = data;
-
       try {
         const newMessage = await Message.create({
           sender_id,
@@ -26,29 +52,11 @@ const socketHandler = (server) => {
           image_url,
         });
 
-        io.to(receiver_id).emit('receiveMessage', newMessage);
-
+        socketIOInstance.to(receiver_id).emit('receiveMessage', newMessage);
         socket.emit('messageSent', newMessage);
       } catch (error) {
         console.error('Error sending message:', error);
         socket.emit('error', { message: 'Message not sent, try again later' });
-      }
-    });
-
-    // Mark message as read
-    socket.on('markAsRead', async ({ messageId }) => {
-      try {
-        const updatedMessage = await Message.findByIdAndUpdate(
-          messageId,
-          { status: 'read' },
-          { new: true }
-        );
-
-        if (updatedMessage) {
-          io.to(updatedMessage.sender_id.toString()).emit('messageRead', updatedMessage);
-        }
-      } catch (error) {
-        console.error('Error marking message as read:', error);
       }
     });
 
@@ -58,4 +66,10 @@ const socketHandler = (server) => {
   });
 };
 
-module.exports = socketHandler;
+
+module.exports = {
+  setSocketIO,
+  sendNotificationToSocket,
+  sendGlobalNotification,
+  socketHandler,
+};
