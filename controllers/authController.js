@@ -195,9 +195,19 @@ exports.driverSignin = async (req, res) => {
       { expiresIn: '1h' }
     );
 
+    const refreshToken = jwt.sign(
+      { userId: user._id, role: user.role },
+      process.env.SECRET,
+      { expiresIn: '30d' }
+    );
+
+    user.refreshToken = refreshToken;
+    await user.save();
+
     res.status(200).json({
       message: 'Sign-in successful',
       token,  
+      refreshToken,
       user: { email: user.email, name: user.name, role: user.role },
     });
   } catch (error) {
@@ -330,3 +340,27 @@ exports.validateToken = async (req, res) => {
       return res.status(401).json({ valid: false, message: 'Invalid token' });
   }
 }
+
+
+exports.refreshToken = async (req, res) => {
+  const { refreshToken } = req.body;
+  
+  try {
+    const decoded = jwt.verify(refreshToken, process.env.SECRET);
+    const user = await User.findById(decoded.userId);
+    
+    if (!user || user.refreshToken !== refreshToken) {
+      return res.status(401).json({ message: 'Invalid refresh token' });
+    }
+
+    const newAccessToken = jwt.sign(
+      { userId: user._id, role: user.role },
+      process.env.SECRET,
+      { expiresIn: '1h' }
+    );
+
+    res.status(200).json({ accessToken: newAccessToken });
+  } catch (error) {
+    res.status(401).json({ message: 'Invalid refresh token' });
+  }
+};
