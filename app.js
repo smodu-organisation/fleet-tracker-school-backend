@@ -9,11 +9,16 @@ const userRoutes = require("./routes/user");
 const messageRoutes = require("./routes/message");
 const notificationRoutes = require("./routes/notification");
 
+const cors = require('cors');
+
+
 const app = express();
 
 connectDB();
 
 app.use(express.json());
+app.use(cors());
+
 
 app.use("/api/auth/", authRoutes);
 app.use("/api/users/", userRoutes);

@@ -159,7 +159,7 @@ exports.managerSignin = async (req, res) => {
 };
 
 exports.driverSignin = async (req, res) => {
-  const { email, password, deviceId } = req.body;  // Including deviceId
+  const { email, password, deviceId } = req.body;  
 
   if (!email || !password || !deviceId) {
     return res.status(400).json({ message: 'Email, password, and device ID are required.' });
@@ -176,17 +176,17 @@ exports.driverSignin = async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials.' });
     }
 
-    // Check if a session exists for the user
     const existingSession = await Session.findOne({ userId: user._id });
     if (existingSession && existingSession.deviceId !== deviceId) {
-      return res.status(403).json({ error: 'Session already active on another device.' });
+      return res.status(403).json({ 
+        error: 'Session already active on another device.', 
+        message: 'Your account is currently in use on another device. Log out from that device to sign in here.' });
     }
 
-    // Create or update the session
     await Session.findOneAndUpdate(
       { userId: user._id },
       { userId: user._id, deviceId },
-      { upsert: true } // Will create the session if it doesn't exist
+      { upsert: true } 
     );
 
     const token = jwt.sign(
@@ -311,3 +311,22 @@ exports.signout = async (req, res) => {
     return res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
+
+
+exports.validateToken = async (req, res) => {
+  const { token } = req.body;
+
+  if (!token) {
+      return res.status(400).json({ message: 'Token is required' });
+  }
+
+  try {
+      const decoded = jwt.verify(token, process.env.SECRET);
+      return res.json({ valid: true, decoded });
+  } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+          return res.status(401).json({ valid: false, message: 'Token expired' });
+      }
+      return res.status(401).json({ valid: false, message: 'Invalid token' });
+  }
+}
