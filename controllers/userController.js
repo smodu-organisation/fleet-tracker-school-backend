@@ -5,7 +5,7 @@ const { sendEmail } = require('../utils/sendEmail');
 exports.autoRegister = async (req, res) => {
   const { school_id, firstName, lastName, email, role, phone, studentId = null, routeId = null } = req.body;
 
-  if (!school_id || !firstName || !lastName || !email || !role) {
+  if (!school_id || !firstName || !lastName || !email || !role || !phone) {
     return res.status(400).json({ message: 'All fields are required.' });
   }
 
@@ -48,10 +48,6 @@ exports.resendCredentials = async (req, res) => {
     await user.save();
 
     await sendEmail(user.email, 'Resent Account Details', `Login Email: ${user.email}\nPassword: ${password}`);
-    
-    if (user.phone) {
-      console.log(`Phone notification sent to: ${user.phone}`);
-    }
 
     res.status(200).json({ message: 'Credentials resent successfully.' });
   } catch (error) {
@@ -59,7 +55,6 @@ exports.resendCredentials = async (req, res) => {
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
-
 exports.changePassword = async (req, res) => {
   const { userId, oldPassword, newPassword } = req.body;
 
@@ -90,26 +85,3 @@ exports.changePassword = async (req, res) => {
   }
 };
 
-// New function to update phone number
-exports.updatePhone = async (req, res) => {
-  const { userId, phone } = req.body;
-
-  if (!userId || !phone) {
-    return res.status(400).json({ message: 'User ID and phone number are required.' });
-  }
-
-  try {
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found.' });
-    }
-
-    user.phone = phone;
-    await user.save();
-
-    res.status(200).json({ message: 'Phone number updated successfully.', user });
-  } catch (error) {
-    console.error('Error updating phone number:', error);
-    res.status(500).json({ message: 'Internal server error', error: error.message });
-  }
-};
