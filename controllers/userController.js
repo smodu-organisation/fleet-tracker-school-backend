@@ -3,26 +3,23 @@ const bcrypt = require('bcrypt');
 const { sendEmail } = require('../utils/sendEmail');
 
 exports.autoRegister = async (req, res) => {
-  const { school_id, name, email, role, studentId = null, routeId = null } = req.body;
+  const { school_id, firstName, lastName, email, role, phone, studentId = null, routeId = null } = req.body;
 
-  if (!school_id || !name || !email || !role) {
+  if (!school_id || !firstName || !lastName || !email || !role) {
     return res.status(400).json({ message: 'All fields are required.' });
   }
 
   try {
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: 'Email already in use.' });
-    }
-
-    const password = Math.random().toString(36).slice(-8); 
+    const password = Math.random().toString(36).slice(-8);
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await User.create({
       school_id,
-      name,
+      firstName,
+      lastName,
       email,
       password_hash: hashedPassword,
+      phone,
       role,
       ...(role === 'Parent' && { parent_id: studentId }),
       ...(role === 'Driver' && { driver_id: routeId }),
@@ -32,11 +29,9 @@ exports.autoRegister = async (req, res) => {
 
     res.status(201).json({ message: 'User created successfully', user: newUser });
   } catch (error) {
-    console.error('Error during user registration:', error);
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
-
 
 exports.resendCredentials = async (req, res) => {
   const { userId } = req.params;
@@ -53,6 +48,10 @@ exports.resendCredentials = async (req, res) => {
     await user.save();
 
     await sendEmail(user.email, 'Resent Account Details', `Login Email: ${user.email}\nPassword: ${password}`);
+    
+    if (user.phone) {
+      console.log(`Phone notification sent to: ${user.phone}`);
+    }
 
     res.status(200).json({ message: 'Credentials resent successfully.' });
   } catch (error) {
@@ -87,6 +86,30 @@ exports.changePassword = async (req, res) => {
     res.status(200).json({ message: 'Password updated successfully.' });
   } catch (error) {
     console.error('Error changing password:', error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};
+
+// New function to update phone number
+exports.updatePhone = async (req, res) => {
+  const { userId, phone } = req.body;
+
+  if (!userId || !phone) {
+    return res.status(400).json({ message: 'User ID and phone number are required.' });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    user.phone = phone;
+    await user.save();
+
+    res.status(200).json({ message: 'Phone number updated successfully.', user });
+  } catch (error) {
+    console.error('Error updating phone number:', error);
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
