@@ -33,6 +33,7 @@ exports.autoRegister = async (req, res) => {
   }
 };
 
+
 exports.resendCredentials = async (req, res) => {
   const { userId } = req.params;
 
