@@ -8,24 +8,25 @@ const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 const messageRoutes = require("./routes/message");
 const notificationRoutes = require("./routes/notification");
-const cors = require('cors');
-
+const routeRoutes = require("./routes/route");
+const cors = require("cors");
 
 const app = express();
 
 connectDB();
 
 app.use(express.json());
-app.use(cors())
+app.use(cors());
 
 app.use("/api/auth/", authRoutes);
 app.use("/api/users/", userRoutes);
 app.use("/api/messages/", messageRoutes);
 app.use("/api/notifications/", notificationRoutes);
+app.use("/api/routes", routeRoutes);
 const server = http.createServer(app);
 
-setSocketIO(server); 
-socketHandler(); 
+setSocketIO(server);
+socketHandler();
 
 const PORT = process.env.PORT || 5000;
 
