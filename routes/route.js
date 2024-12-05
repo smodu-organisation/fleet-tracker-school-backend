@@ -10,8 +10,8 @@ const {
 
 router.post("/create", createRoute);
 router.get("/", getAllRoutes);
-router.get("/:id", getRouteById);
-router.put("/:id", updateRoute);
-router.delete("/:id", deleteRoute);
+router.get("/:school_id/:route_id", getRouteById);
+router.put("/:school_id/:route_id", updateRoute);
+router.delete("/:school_id/:route_id", deleteRoute);
 
 module.exports = router;
