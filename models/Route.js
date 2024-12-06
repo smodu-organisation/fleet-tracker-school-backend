@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const Student = require('../models/Student'); 
 const routeSchema = new mongoose.Schema({
   school_id: {
     type: mongoose.Schema.Types.ObjectId,
@@ -15,11 +15,11 @@ const routeSchema = new mongoose.Schema({
     required: true,
   },
   vehicle_id: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: "Vehicle",
-    required: true,
+    required: false,
   },
-  assigned_students: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }],
+  assigned_students: [{ type: String, ref: "Student" }],
   route_distance: { type: mongoose.Schema.Types.Decimal128 },
   estimated_time: { type: mongoose.Schema.Types.Decimal128 },
   created_at: { type: Date, default: Date.now },
