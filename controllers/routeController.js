@@ -41,12 +41,10 @@ exports.createRoute = async (req, res) => {
 
 exports.getAllRoutes = async (req, res) => {
   try {
-    const { school_id } = req.params;
+    const { school_id } = req.body;
 
-    const filter = {};
-    if (school_id) filter.school_id = school_id;
 
-    const routes = await Route.find(filter);
+    const routes = await Route.find({school_id});
     res.json(routes);
   } catch (err) {
     res.status(500).json({ error: err.message });
