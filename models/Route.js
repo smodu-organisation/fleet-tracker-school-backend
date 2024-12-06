@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const Student = require('../models/Student'); 
 const routeSchema = new mongoose.Schema({
   school_id: {
     type: mongoose.Schema.Types.ObjectId,
