@@ -9,6 +9,8 @@ const userRoutes = require("./routes/user");
 const messageRoutes = require("./routes/message");
 const notificationRoutes = require("./routes/notification");
 const routeRoutes = require("./routes/route");
+const studentRoutes = require('./routes/student');
+
 const cors = require("cors");
 
 const app = express();
@@ -23,6 +25,7 @@ app.use("/api/users/", userRoutes);
 app.use("/api/messages/", messageRoutes);
 app.use("/api/notifications/", notificationRoutes);
 app.use("/api/routes", routeRoutes);
+app.use('/api/students', studentRoutes); 
 const server = http.createServer(app);
 
 setSocketIO(server);
