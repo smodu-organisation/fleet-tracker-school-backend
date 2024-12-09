@@ -10,6 +10,7 @@ const messageRoutes = require("./routes/message");
 const notificationRoutes = require("./routes/notification");
 const routeRoutes = require("./routes/route");
 const studentRoutes = require('./routes/student');
+const vehicleRoutes = require('./routes/vehicle')
 
 const cors = require("cors");
 
@@ -26,6 +27,7 @@ app.use("/api/messages/", messageRoutes);
 app.use("/api/notifications/", notificationRoutes);
 app.use("/api/routes", routeRoutes);
 app.use('/api/students', studentRoutes); 
+app.use('/api/vehicles', vehicleRoutes); 
 const server = http.createServer(app);
 
 setSocketIO(server);
